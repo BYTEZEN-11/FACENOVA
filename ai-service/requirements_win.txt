@@ -1,0 +1,18 @@
+# Core
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-multipart
+
+# HTTP
+httpx
+requests
+
+# Utilities
+numpy
+pandas
+python-dotenv
+python-dateutil
+loguru
+Pillow

@@ -1,0 +1,159 @@
+name: fake-news-platform
+
+services:
+  # MongoDB database
+  # SECURITY: 27017 is NOT published to the host. The service is only reachable
+  # via the fnp-net bridge network. MONGO_ROOT_PASSWORD must be set in .env
+  # (>=16 chars recommended).
+  mongo:
+    image: mongo:7
+    container_name: fnp-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?MONGO_ROOT_USERNAME must be set}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set (>=16 chars)}
+      MONGO_INITDB_DATABASE: fake_news_db
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - fnp-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis cache
+  # SECURITY: 6379 is NOT published to the host. REDIS_PASSWORD is required.
+  redis:
+    image: redis:7-alpine
+    container_name: fnp-redis
+    restart: unless-stopped
+    command: >
+      sh -c "redis-server
+      --requirepass $${REDIS_PASSWORD}
+      --bind 0.0.0.0
+      --protected-mode yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfilename appendonly.aof
+      --appendfsync everysec
+      --loglevel notice
+      --tcp-keepalive 60
+      --timeout 300"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    volumes:
+      - redis_data:/data
+    networks:
+      - fnp-net
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python AI service
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: fnp-ai
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      ENV: ${NODE_ENV:-development}
+      HOST: 0.0.0.0
+      PORT: 8000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # CRITICAL: the AI service reads `API_KEY` (not `AI_SERVICE_API_KEY`)
+      # from env via pydantic-settings. Without this explicit mapping the
+      # service falls back to a randomly generated ephemeral key on every
+      # restart, breaking backend↔AI service auth.
+      API_KEY: ${AI_SERVICE_API_KEY:?AI_SERVICE_API_KEY must be set}
+      USE_TRANSFORMER_MODELS: "false"
+      # Allow the backend service name as a CORS origin in addition to
+      # the public frontend domain.
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000
+    networks:
+      - fnp-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Node.js backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fnp-backend
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 5000
+      MONGODB_URI: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongo:27017/fake_news_db?authSource=admin
+      REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (>=32 chars)}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET must be set (>=32 chars)}
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_SERVICE_API_KEY: ${AI_SERVICE_API_KEY:?AI_SERVICE_API_KEY must be set (>=32 chars)}
+      CORS_ORIGIN: http://localhost:5173,http://localhost:3000
+      RATE_LIMIT_WINDOW_MS: 60000
+      RATE_LIMIT_MAX_REQUESTS: 100
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    networks:
+      - fnp-net
+    depends_on:
+      ai-service:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # React frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:5001/api
+    container_name: fnp-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    networks:
+      - fnp-net
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  fnp-net:
+    driver: bridge

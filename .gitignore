@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+**/node_modules/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Python Virtual Environments
+venv/
+**/venv/
+win_venv/
+**/win_venv/
+.venv/
+**/.venv/
+env/
+**/env/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+.next/
+**/.next/
+.vite/
+**/.vite/
+*.egg-info/
+**/*.egg-info/
+
+# Environment files
+.env
+**/.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+logs/
+**/logs/
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE & Tool Metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.claude/
+.gemini/
+.agents/
+.pytest_cache/
+**/.pytest_cache/
+*.tmp
+*.bak
+
+# Test coverage
+coverage/
+**/coverage/
+.nyc_output/
+
+# Docker
+.docker-data/
+
+# MongoDB data dumps
+dump/
