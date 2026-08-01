@@ -1,190 +1,238 @@
-# 🛡 TruthGuard AI — Fake News Detection Platform
+<div align="center">
 
-A production-grade AI-powered platform that detects fake news, misinformation, and misleading content across **text**, **URLs**, and **images**.
+# 🛡️ TruthGuard AI
+### Production-Grade Deep Learning & NLP Fake News Detection Platform
 
-## ✨ Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Backend-Express.js-83CD29.svg?logo=nodedotjs)](https://nodejs.org)
+[![FastAPI](https://img.shields.io/badge/AI--Service-FastAPI-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61DAFB.svg?logo=react)](https://react.dev)
+[![Docker](https://img.shields.io/badge/Deployment-Docker--Compose-2496ED.svg?logo=docker)](https://docker.com)
 
-- **Multi-model ensemble** — BERT, RoBERTa, and DistilBERT (or heuristic fallback)
-- **Manipulation indicators** — Clickbait, emotional manipulation, sensationalism
-- **Claim extraction** with fact verification against trusted sources
-- **Source credibility analysis** for URLs (domain age, TLD, sensational keywords)
-- **Image analysis** with metadata extraction (OCR/deepfake hooks ready)
-- **Beautiful dark UI** — Modern, responsive, accessible
-- **Secure by default** — JWT auth, bcrypt, rate limiting, SSRF protection, regex injection guards
-- **Production-ready** — Docker, health checks, graceful shutdown, structured logging
+[Features](#-key-features) • [Architecture](#-system-architecture) • [Quick Start](#-quick-start) • [API Specs](#-api-specifications) • [AI Engine](#-ai-detection-engine) • [Security](#-security--hardening)
 
-## 🏗 Architecture
+---
 
+</div>
+
+## 📌 Executive Summary
+
+**TruthGuard AI** is an enterprise-level multi-modal platform designed to combat online misinformation, clickbait, and unverified claims. By leveraging a high-performance transformer ensemble (BERT, RoBERTa, DistilBERT), linguistic pattern analysis, and domain credibility scoring, TruthGuard delivers rapid, explainable trust metrics for raw text inputs, web article URLs, and media files.
+
+---
+
+## ✨ Key Features
+
+- 🧠 **Transformer Ensemble Intelligence** — Dual-mode prediction combining fine-tuned transformer models with a lightweight heuristic fallback.
+- 🔍 **Automated Claim Extraction** — Syntactic dependency parsing to extract factual assertions and cross-reference trusted knowledge sources.
+- 🎯 **Multi-Factor Manipulation Detection** — Real-time scoring for clickbait headlines, emotional manipulation, and sensationalism.
+- 🌐 **URL & Source Credibility Engine** — Automated metadata extraction, TLD trust inspection, domain age evaluation, and blacklist/whitelist lookups.
+- 🖼️ **Media Metadata Extraction** — Processing pipeline ready for EXIF inspection, OCR text parsing, and deepfake signals.
+- ⚡ **High-Performance Architecture** — Asynchronous FastAPI AI microservice with Redis query caching and MongoDB storage.
+- 🔒 **Enterprise-Grade Hardening** — Full JWT authentication with token rotation, SSRF guards, rate limiting, and parameter sanitization.
+- 🎨 **Modern Dark UI/UX** — Fully responsive React dashboard featuring dynamic trust gauges, history filtering, and CSV export capabilities.
+
+---
+
+## 💻 Tech Stack
+
+| Domain | Technologies & Frameworks |
+|---|---|
+| **Frontend** | React 18, Vite, Context API, Vanilla CSS (Custom Design System), Lucide Icons |
+| **Backend API** | Node.js (v18+), Express.js, Mongoose, Winston Logger, Express Validator |
+| **AI Microservice** | Python 3.10+, FastAPI, PyTorch, HuggingFace Transformers (BERT/RoBERTa), spaCy, Pydantic |
+| **Databases & Cache** | MongoDB (Primary Storage), Redis (Caching & Rate Limiting Key-Value Store) |
+| **DevOps & Infra** | Docker, Docker Compose, Nginx, Health Check Probes |
+
+---
+
+## 🏗️ System Architecture
+
+```text
+               ┌────────────────────────────────────────────────────────┐
+               │              Client Browser (React 18 + Vite)           │
+               └───────────────────────────┬────────────────────────────┘
+                                           │ HTTPS / REST API
+                                           ▼
+               ┌────────────────────────────────────────────────────────┐
+               │           Backend API Gatekeeper (Express.js)          │
+               │   [JWT Auth | Rate Limiter | SSRF Guard | CORS Policy]  │
+               └───────────────┬────────────────────────┬───────────────┘
+                               │                        │
+               ┌───────────────▼────────┐      ┌────────▼──────────────┐
+               │ MongoDB (Data Store)   │      │ Redis Cache & Limits   │
+               └────────────────────────┘      └────────────────────────┘
+                                                        │ HTTP (Protected)
+                                                        ▼
+                                       ┌────────────────────────────────┐
+                                       │    AI Service (FastAPI / PyTorch)│
+                                       │ [BERT | spaCy | Claim Extractor]│
+                                       └────────────────────────────────┘
 ```
-┌────────────┐    HTTPS    ┌──────────────┐   HTTP    ┌─────────────┐
-│  React UI  │ ──────────► │  Node.js API │ ────────► │ Python AI   │
-│  (Vite)    │              │  (Express)   │           │ (FastAPI)   │
-└────────────┘              └──────┬───────┘           └─────────────┘
-                                  │                         │
-                            ┌─────┴─────┐              ┌───┴────┐
-                            ▼           ▼              ▼        ▼
-                       ┌────────┐ ┌────────┐      ┌────────┐ ┌────┐
-                       │  Mongo │ │ Redis  │      │ spaCy  │ │NL  │
-                       └────────┘ └────────┘      └────────┘ └────┘
-```
 
-## 🚀 Quick Start (Docker — Recommended)
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- [Docker & Docker Compose](https://www.docker.com/get-started) installed on your system.
+
+### Running with Docker (Recommended)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/BYTEZEN-11/FACENOVA.git
+   cd FACENOVA
+   ```
+
+2. **Configure Environment Variables:**
+   ```bash
+   cp .env.example .env
+   cp backend/.env.example backend/.env
+   cp ai-service/.env.example ai-service/.env
+   ```
+
+3. **Spin Up Containers:**
+   ```bash
+   docker compose up --build -d
+   ```
+
+4. **Access the Services:**
+   - 🌐 **Web Dashboard:** `http://localhost:5173`
+   - 🔌 **Backend API Base:** `http://localhost:5000/api`
+   - 🤖 **AI Microservice Swagger Docs:** `http://localhost:8000/docs`
+
+---
+
+## 🛠️ Local Development (Native)
+
+If you prefer executing services without Docker:
 
 ```bash
-# 1. Clone and configure
-git clone <repo> && cd fake-news-platform
-cp .env.example .env
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-cp ai-service/.env.example ai-service/.env
+# 1. Install Dependencies across all services
+cd backend && npm install
+cd ../frontend && npm install
+cd ../ai-service && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 
-# 2. Generate secure JWT secrets (32+ chars)
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-# Copy each value into backend/.env as JWT_SECRET and JWT_REFRESH_SECRET
+# 2. Run Local MongoDB and Redis services
+docker compose up -d mongo redis
 
-# 3. Start the full stack
-docker compose up --build
-```
-
-Open:
-- **Frontend** → http://localhost:5173
-- **Backend API** → http://localhost:5000
-- **AI Service docs** → http://localhost:8000/docs
-
-## 🛠 Local Development (without Docker)
-
-```bash
-./scripts/setup.sh
-```
-
-This installs backend, frontend, and Python dependencies and copies `.env` templates.
-
-Then run each service in its own terminal:
-
-```bash
-# Terminal 1 — backend
+# 3. Start Development Servers
+# Backend (Terminal 1)
 cd backend && npm run dev
 
-# Terminal 2 — AI service
-cd ai-service && source venv/bin/activate && uvicorn app.main:app --reload
+# AI Service (Terminal 2)
+cd ai-service && uvicorn app.main:app --reload --port 8000
 
-# Terminal 3 — frontend
+# Frontend (Terminal 3)
 cd frontend && npm run dev
 ```
 
-Requires MongoDB and Redis running locally (or via `docker compose up -d mongo redis`).
+---
 
-## 🧪 Seed Reference Data
+## 📚 API Specifications
 
-```bash
-cd backend
-node scripts/seed.js
-```
+### Authentication Routes (`/api/auth`)
 
-Inserts domain credibility entries (trusted/satire/unreliable) into the source cache.
-No hardcoded users or passwords are created.
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register new user account | Public |
+| `POST` | `/api/auth/login` | Authenticate user & issue tokens | Public |
+| `POST` | `/api/auth/refresh` | Refresh expired access token | Public |
+| `POST` | `/api/auth/logout` | Revoke session refresh token | Authenticated |
+| `GET` | `/api/auth/me` | Fetch active user profile | Authenticated |
 
-Register your own account after seeding:
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"Your Name","email":"you@example.com","password":"StrongPass1!"}'
-```
+### Analysis Routes (`/api/analyze`)
 
-## 📚 API Reference
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `POST` | `/api/analyze/text` | Perform deep NLP scan on raw text input | Authenticated |
+| `POST` | `/api/analyze/url` | Extract web article & run credibility scan | Authenticated |
+| `POST` | `/api/analyze/image` | Process image upload & inspect EXIF metadata | Authenticated |
 
-### Auth
-- `POST /api/auth/register` — `{name, email, password}` → `{user, accessToken, refreshToken}`
-- `POST /api/auth/login` — `{email, password}` → `{user, accessToken, refreshToken}`
-- `POST /api/auth/refresh` — `{refreshToken}` → `{accessToken, refreshToken}`
-- `POST /api/auth/logout`
-- `GET  /api/auth/me`
+### Report Management (`/api/reports`)
 
-### Analysis
-- `POST /api/analyze/text` — `{text, options?}` → full analysis result
-- `POST /api/analyze/url` — `{url, options?}` → URL extraction + analysis
-- `POST /api/analyze/image` — multipart `image` file
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `GET` | `/api/reports` | Fetch paginated scan history | Authenticated |
+| `GET` | `/api/reports/:id` | Retrieve single analysis breakdown | Authenticated |
+| `DELETE` | `/api/reports/:id` | Soft delete analysis record | Authenticated |
+| `GET` | `/api/reports/stats` | Fetch user dashboard metrics | Authenticated |
 
-### Reports
-- `GET    /api/reports` — paginated history (`page`, `limit`, `type`, `classification`, `search`)
-- `GET    /api/reports/:id` — single report
-- `DELETE /api/reports/:id`
-- `GET    /api/reports/stats` — dashboard statistics
+---
 
-## 🧬 AI Pipeline
+## 🧬 AI Detection Engine
 
-1. **NLP preprocessing** — clean, normalize, tokenize, lemmatize (spaCy)
-2. **Indicator scoring** — clickbait, emotional, sensational, misleading
-3. **Claim extraction** — surface factual claims using verb-led detection
-4. **Fact verification** — cross-check claims against trusted sources
-5. **Model ensemble** — BERT + RoBERTa + DistilBERT (heuristic fallback)
-6. **Trust scoring** — weighted combination → 0-100 score, classification, reasoning
+The credibility score ($S_{\text{trust}}$) is computed via a multi-layered weighted model:
 
-### Trust Score Formula
-
-```
-trust = (model_score * 0.55)
-      + (indicator_cleanliness * 0.30)
-      + (claim_verification_ratio * 0.15)
-```
+$$S_{\text{trust}} = (W_m \cdot S_{\text{ensemble}}) + (W_i \cdot S_{\text{indicators}}) + (W_c \cdot R_{\text{verified}})$$
 
 Where:
-- `model_score` = P(real) × 100 from ensemble
-- `indicator_cleanliness` = 100 − (weighted manipulation penalty)
-- `claim_verification_ratio` = % of claims verified
+- $S_{\text{ensemble}}$: Ensemble classifier output probability for authentic content.
+- $S_{\text{indicators}}$: Penalized score calculated from clickbait, emotional, and sensational indicators.
+- $R_{\text{verified}}$: Ratio of extracted factual claims matching verified datasets.
+- Thresholds: **Authentic** ($\ge 65$), **Suspicious** ($36-64$), **Misleading/Fake** ($\le 35$).
 
-Classification thresholds: **real** ≥ 65, **fake** ≤ 35, else **suspicious**.
+---
 
-## 🔒 Security
+## 🔒 Security & Hardening
 
-| Layer | Implementation |
-|-------|----------------|
-| Passwords | bcrypt with 12 salt rounds |
-| JWT | HS256, 15-min access, 7-day refresh |
-| HTTP | Helmet, CSP, CORS whitelist, HSTS-ready |
-| Rate limit | 100/min general, 50/hr analysis, 10/15min auth |
-| Input | express-validator + sanitize-html + mongoSanitize |
-| URL fetch | SSRF guard blocks private IPs & metadata services |
-| Mongo | Regex injection guarded via `escapeRegex` |
-| API key | Internal X-API-Key between backend ↔ AI service |
+- **Authentication:** HS256 JWT pair with short-lived access tokens (15 mins) and rotatable refresh tokens (7 days).
+- **Protection Against Injection:** Strict NoSQL query sanitization (`mongoSanitize`) and HTML escaping (`sanitize-html`).
+- **SSRF Defenses:** Internal URL fetcher resolves DNS and blocks private IPv4/IPv6 ranges and cloud metadata IPs (`169.254.169.254`).
+- **Rate Limiting:** IP and user-based throttling across login, general API, and high-compute inference endpoints via Redis.
+- **HTTP Security Headers:** Helmet.js integrated with strict CSP rules, HSTS, X-Content-Type-Options, and frameguard.
 
-## 🧱 Project Structure
+---
 
-```
+## 📂 Project Layout
+
+```text
 fake-news-platform/
-├── backend/         Node.js + Express + Mongoose
-├── frontend/        React + Vite + Tailwind
-├── ai-service/      Python + FastAPI + spaCy
-├── docker/          mongo-init.js, redis.conf
-├── docs/            PRD, HLD, LLD, ARCHITECTURE
-├── scripts/         setup.sh, build-all.sh
-└── docker-compose.yml
+├── ai-service/             # FastAPI NLP & Transformer Microservice
+│   ├── app/                # Application logic (routers, models, indicators, services)
+│   ├── tests/              # Pytest unit & integration test suite
+│   ├── Dockerfile          # Python service container manifest
+│   └── requirements.txt    # Dependencies specification
+├── backend/                # Express.js REST API Gateway
+│   ├── src/                # Controllers, models, routes, middleware, services
+│   ├── scripts/            # Database seed and maintenance scripts
+│   ├── Dockerfile          # Node.js service container manifest
+│   └── package.json        # Dependencies & script commands
+├── frontend/               # React 18 Dashboard Application
+│   ├── src/                # Components, hooks, context, pages, styles
+│   ├── Dockerfile          # Vite production build & Nginx container manifest
+│   └── package.json        # Frontend dependencies
+├── docker/                 # Container configuration files (redis.conf, mongo-init.js)
+├── docker-compose.yml      # Orchestration definition for multi-container stack
+└── README.md               # System documentation
 ```
+
+---
 
 ## 🧪 Testing
 
 ```bash
-# Backend
+# Run Backend API unit tests
 cd backend && npm test
 
-# Frontend
-cd frontend && npm test
+# Run AI Microservice test suite
+cd ai-service && pytest tests/ -v
 
-# AI service
-cd ai-service && python -m pytest tests/ -v
+# Run Frontend component tests
+cd frontend && npm test
 ```
 
-## 📦 Deployment
+---
 
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for AWS / Render / Railway guides.
+## 👤 Author & Maintainer
 
-Quick checklist:
-1. Generate 32+ char secrets: `openssl rand -hex 48`
-2. Set `NODE_ENV=production` in backend
-3. Set `CORS_ORIGIN` to your real frontend domain
-4. Build & push images
-5. Run `docker compose up -d` on your server
+**bytezen-11**  
+📧 Contact: [shingh979875@gmail.com](mailto:shingh979875@gmail.com)  
+🐙 GitHub: [@BYTEZEN-11](https://github.com/BYTEZEN-11)
+
+---
 
 ## 📄 License
 
-MIT
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
